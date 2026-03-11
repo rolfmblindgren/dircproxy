@@ -8,7 +8,11 @@ EXTRA_DIST = \
 SUBDIRS = \
 	conf \
 	contrib \
-	getopt \
 	crypt \
 	doc \
 	src
+
+if BUILD_BUNDLED_GETOPT
+SUBDIRS += \
+	getopt
+endif

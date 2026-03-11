@@ -152,7 +152,7 @@ static char *_x_makenum(long num, int base, int minsize, int mindigits,
     }
   }
 
-  if (strlen(newstr) < mindigits) {
+  if (strlen(newstr) < (size_t)mindigits) {
     mindigits -= strlen(newstr);
     while (mindigits--) {
 #ifdef DEBUG_MEMORY
@@ -177,7 +177,7 @@ static char *_x_makenum(long num, int base, int minsize, int mindigits,
     signchar = 0;
   }
 
-  if ((strlen(newstr) < minsize) && padchar) {
+  if ((strlen(newstr) < (size_t)minsize) && padchar) {
     minsize -= strlen(newstr);
     while (minsize--) {
 #ifdef DEBUG_MEMORY
@@ -218,7 +218,7 @@ static char *_x_makenum(long num, int base, int minsize, int mindigits,
     j++;
   }
 
-  if ((strlen(newstr) < minsize) && !padchar) {
+  if ((strlen(newstr) < (size_t)minsize) && !padchar) {
     char *tmpstr;
 
     i = minsize - strlen(newstr);
@@ -299,7 +299,7 @@ char *x_vsprintf(const char *format, va_list ap) {
       if (*formatpos == '*') {
         width = va_arg(ap, int);
         if (width < 0) {
-          width =- width;
+          width = -width;
           padding = 0;
         }
         formatpos++;
@@ -354,7 +354,7 @@ char *x_vsprintf(const char *format, va_list ap) {
 #else /* DEBUG_MEMORY */
         newdest = (char *)realloc(newdest, newdestlen + 1);
 #endif /* DEBUG_MEMORY */
-        newdest[newdestlen - 1] = va_arg(ap, unsigned char);
+        newdest[newdestlen - 1] = (unsigned char)va_arg(ap, int);
         newdest[newdestlen] = 0;
         newdestlen++;
 
@@ -378,7 +378,7 @@ char *x_vsprintf(const char *format, va_list ap) {
 #else /* DEBUG_MEMORY */
         tmpstr = x_strdup(va_arg(ap, char *));
 #endif /* DEBUG_MEMORY */
-        len = (prec && (prec < strlen(tmpstr))) ? prec : strlen(tmpstr);
+        len = (prec && ((size_t)prec < strlen(tmpstr))) ? (size_t)prec : strlen(tmpstr);
         if (padding) {
           while (--width > len) {
 #ifdef DEBUG_MEMORY
@@ -478,9 +478,9 @@ char *x_vsprintf(const char *format, va_list ap) {
           num = va_arg(ap, unsigned long);
         } else if (qualifier == 'h') {
           if (signchar) {
-            num = va_arg(ap, signed short int);
+            num = (signed short int)va_arg(ap, int);
           } else {
-            num = va_arg(ap, unsigned short int);
+            num = (unsigned short int)va_arg(ap, unsigned int);
           }
         } else if (signchar) {
           num = va_arg(ap, signed int);

@@ -45,7 +45,11 @@
 #include <errno.h>
 
 #include <dircproxy.h>
+#if defined(__APPLE__) || defined(__GLIBC__) || defined(__FreeBSD__) || defined(__NetBSD__) || defined(__OpenBSD__)
+#include <getopt.h>
+#else
 #include "getopt/getopt.h"
+#endif
 #include "sprintf.h"
 #include "cfgfile.h"
 #include "irc_net.h"

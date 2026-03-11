@@ -72,7 +72,7 @@ int cfg_read(const char *filename, char **listen_port, char **pid_file,
   def->server_maxinitattempts = DEFAULT_SERVER_MAXINITATTEMPTS;
   def->server_keepalive = DEFAULT_SERVER_KEEPALIVE;
   def->server_pingtimeout = DEFAULT_SERVER_PINGTIMEOUT;
-  if (DEFAULT_SERVER_THROTTLE_BYTES || DEFAULT_SERVER_THROTTLE_PERIOD) {
+  if (DEFAULT_SERVER_THROTTLE_BYTES != 0 || DEFAULT_SERVER_THROTTLE_PERIOD != 0) {
     def->server_throttle = (long *)malloc(sizeof(long) * 2);
     def->server_throttle[0] = DEFAULT_SERVER_THROTTLE_BYTES;
     def->server_throttle[1] = DEFAULT_SERVER_THROTTLE_PERIOD;

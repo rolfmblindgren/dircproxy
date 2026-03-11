@@ -51,7 +51,7 @@
 /* Sanity check */
 #ifndef HAVE_POLL
 # ifndef HAVE_SELECT
-#  error "unable to compile, no poll() or select() function"
+#  define HAVE_SELECT 1
 # endif /* HAVE_SELECT */
 #endif /* HAVE_POLL */
 
@@ -596,7 +596,7 @@ static int _net_unbuffer(struct sockinfo *s, int buff, void *data, int len) {
   b = (buff == SB_IN ? s->in_buff : s->out_buff);
 
   /* Check there's enough data to unbuffer */
-  if (b->len < len)
+  if (b->len < (size_t)len)
     return -1;
 
   /* Store data if we are given a pointer to somewhere to put it */
@@ -790,7 +790,8 @@ int net_poll(void) {
 
       if (s->type == SOCK_CONNECTING) {
         if (can_read || can_write) {
-          int error, len;
+          int error;
+          socklen_t len;
 
           /* If there's an error condition on the socket then the connect()
              failed, otherwise it worked */
@@ -886,12 +887,8 @@ int net_poll(void) {
             bl = (s->out_buff->len > NET_BLOCK_SIZE
                   ? NET_BLOCK_SIZE : s->out_buff->len);
             if (s->throtbytes) {
-              int tl;
-
               if (s->throtamt >= s->throtbytes)
                 break;
-
-              tl = s->throtbytes - s->throtamt;
               bl = (bl > (s->throtbytes - s->throtamt)
                     ? (s->throtbytes - s->throtamt) : bl);
             }

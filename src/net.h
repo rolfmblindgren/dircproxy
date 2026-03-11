@@ -23,6 +23,10 @@
 #include "config.h"
 #endif
 
+#include <sys/types.h>
+#include <sys/socket.h>
+#include <netinet/in.h>
+
 #if HAVE_STRUCT_SOCKADDR_STORAGE_SS_FAMILY
 #  define HAVE_IPV6 1
 #  define SOCKADDR struct sockaddr_storage

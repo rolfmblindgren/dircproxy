@@ -1,6 +1,18 @@
 NEWS about changes for existing users.
 --------------------------------------
 
+Version 1.2.0 - 11 Mar 2026
+	* Stabilized the old 1.2.0-RC1 code on modern toolchains.
+	* Autotools now uses the system getopt(3) implementation when
+	  getopt_long() is available, instead of always building the bundled
+	  legacy GNU getopt copy.
+	* Fixed several modern compiler and portability issues in the network
+	  and DCC code, including proper socklen_t usage and safer integer/
+	  pointer callback conversions.
+	* Fixed undefined behavior in the custom sprintf() implementation for
+	  promoted varargs types and corrected a width parsing bug.
+	* Improved build behavior for dircproxy-crypt on autotools builds.
+
 Version 1.2.0-RC1 - 09 jan 2009
 	* Lot of bugfixes
 

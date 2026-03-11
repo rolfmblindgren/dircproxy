@@ -34,6 +34,7 @@
 #include <errno.h>
 #include <time.h>
 #include <fcntl.h>
+#include <stdint.h>
 
 #include <dircproxy.h>
 #include "sprintf.h"
@@ -68,7 +69,7 @@ static void _ircserver_stoned(struct ircproxy *, void *);
 static void _ircserver_antiidle(struct ircproxy *, void *);
 static int _ircserver_forclient(struct ircproxy *, struct ircmessage *);
 static int _ircserver_send_dccreject(struct ircproxy *, const char *, const char *);
-static int _ircserver_dccresume_timeout(struct ircproxy *, struct dcc_resume *);
+static void _ircserver_dccresume_timeout(struct ircproxy *, struct dcc_resume *);
 
 struct dcc_resume *dcc_resume_list=NULL;
 
@@ -176,7 +177,7 @@ static void _ircserver_connect2(struct ircproxy *p, void *data,
   /* Copy the found information into p */
   free(p->servername);
   p->servername = x_strdup(host);
-  net_filladdr(&p->server_addr, ip, (unsigned short)data);
+  net_filladdr(&p->server_addr, ip, (unsigned short)(intptr_t)data);
   
   if (p->conn_class->local_address) {
     dns_addrfromhost((void *)p, 0, p->conn_class->local_address,
@@ -345,7 +346,7 @@ static void _ircserver_connected(struct ircproxy *p, int sock) {
   if (!p->hostname) {
     SOCKADDR sock_addr;
     char ip[40];
-    int len;
+    socklen_t len;
 
     len = sizeof(struct sockaddr_in);
     if (!getsockname(p->server_sock, (struct sockaddr *)&sock_addr, &len)) {
@@ -1165,7 +1166,7 @@ static int _ircserver_gotmsg(struct ircproxy *p, const char *str) {
         } else if (!strcmp(cmsg.cmd, "DCC")
                    && p->conn_class->dcc_proxy_incoming) {
           struct sockaddr_in vis_addr;
-          int len;
+          socklen_t len;
 
           /* We need our local address to do anything DCC related */
           len = sizeof(struct sockaddr_in);
@@ -1226,7 +1227,7 @@ static int _ircserver_gotmsg(struct ircproxy *p, const char *str) {
                         || !irc_strcasecmp(cmsg.params[0], "SEND"))) {
             char *tmp, *ptr, *dccmsg, *rejmsg;
             struct in_addr l_addr, r_addr;
-            int l_port, r_port, t_port;
+          int l_port = 0, r_port, t_port;
             char *capfile = 0;
             char *rest = 0;
 	    int type = 0;
@@ -1756,14 +1757,12 @@ static int _ircserver_send_dccreject(struct ircproxy *p, const char *msg,
   return ret;
 }
 
-static int _ircserver_dccresume_timeout(struct ircproxy *p, struct dcc_resume *node)
+static void _ircserver_dccresume_timeout(struct ircproxy *p, struct dcc_resume *node)
 {
    struct dcc_resume *prevptr;
    struct stat file_stat;
    unsigned short counter = 1;
    char *newfile;
-   int new, old, bytesread;
-   char buffer[1024];
    
    timer_del((void *)p, node->id);
    
@@ -1806,6 +1805,4 @@ static int _ircserver_dccresume_timeout(struct ircproxy *p, struct dcc_resume *n
    free(node->rejmsg);
    free(node->fullname);
    free(node);
-   
-   return 0;
 }

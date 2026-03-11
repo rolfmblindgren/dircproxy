@@ -51,7 +51,10 @@ AC_FUNC_STAT
 AC_FUNC_STRFTIME
 AC_CHECK_FUNCS([alarm dup2 gethostbyaddr inet_ntoa memmove memset mkdir rmdir \
 		realloc select seteuid strcasecmp strchr strcspn strerror \
+		getopt_long \
 		strncasecmp strrchr strspn strstr strtoul])
+
+AM_CONDITIONAL([BUILD_BUNDLED_GETOPT], [test "x$ac_cv_func_getopt_long" != "xyes"])
 
 DIP_NET
 

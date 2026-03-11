@@ -35,6 +35,7 @@
 #include <unistd.h>
 #include <signal.h>
 #include <netdb.h>
+#include <stdint.h>
 
 #include <dircproxy.h>
 #include "sprintf.h"
@@ -355,7 +356,7 @@ int dns_filladdr(void *boundto, const char *name, const char *defaultport,
     host[sizeof(host) - 1] = '\0';
   }
 
-  ret = _dns_startrequest(boundto, function, (void*)port, 0, host);
+  ret = _dns_startrequest(boundto, function, (void *)(intptr_t)port, 0, host);
 
   return ret;
 }

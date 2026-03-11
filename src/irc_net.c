@@ -156,7 +156,7 @@ static int _ircnet_client_connected(struct ircproxy *p) {
 /* Creates a client hooked onto a socket */
 int ircnet_hooksocket(int sock) {
   struct ircproxy *p;
-  int len;
+  socklen_t len;
 
   p = _ircnet_newircproxy();
   p->client_sock = sock;
@@ -182,7 +182,7 @@ int ircnet_hooksocket(int sock) {
 /* Accept a client. */
 static void _ircnet_acceptclient(void *data, int sock) {
   struct ircproxy *p;
-  int len;
+  socklen_t len;
 
   p = _ircnet_newircproxy();
 
@@ -635,7 +635,7 @@ int ircnet_dedicate(struct ircproxy *p) {
 int ircnet_announce_dedicated(struct ircproxy *p) {
   SOCKADDR listen_addr;
   unsigned int port;
-  int len;
+  socklen_t len;
 
   if (!IS_CLIENT_READY(p))
     return -1;

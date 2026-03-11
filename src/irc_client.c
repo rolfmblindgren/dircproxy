@@ -25,6 +25,7 @@
 #include <string.h>
 #include <stdarg.h>
 #include <time.h>
+#include <stdint.h>
 
 #include <dircproxy.h>
 
@@ -1001,7 +1002,7 @@ int ircclient_checknickname(struct ircproxy *p) {
 /* Change the nickname to something we generate ourselves */
 int ircclient_generate_nick(struct ircproxy *p, const char *tried) {
   char *c, *nick;
-  int ret;
+  int ret = 0;
 
   c = nick = (char *)malloc(strlen(tried) + 2);
   strcpy(nick, tried);
@@ -1058,7 +1059,7 @@ int ircclient_generate_nick(struct ircproxy *p, const char *tried) {
   }
 
   free(nick);
-  return 0;
+  return ret;
 }
 
 /* Timer hook to restore a lost nickname */
@@ -1253,7 +1254,7 @@ static int _ircclient_motd(struct ircproxy *p) {
         s = x_strdup(p->private_log.nlines ? "all" : "none");
       } else if (p->conn_class->private_log_recall == 0) {
         s = x_strdup("none");
-      } else if (p->conn_class->private_log_recall == p->private_log.nlines) {
+      } else if ((unsigned long)p->conn_class->private_log_recall == p->private_log.nlines) {
         s = x_strdup("all");
       } else {
         s = x_sprintf("%ld", p->conn_class->private_log_recall);
@@ -1275,7 +1276,7 @@ static int _ircclient_motd(struct ircproxy *p) {
         s = x_strdup(p->server_log.nlines ? "all" : "none");
       } else if (p->conn_class->server_log_recall == 0) {
         s = x_strdup("none");
-      } else if (p->conn_class->server_log_recall == p->server_log.nlines) {
+      } else if ((unsigned long)p->conn_class->server_log_recall == p->server_log.nlines) {
         s = x_strdup("all");
       } else {
         s = x_sprintf("%ld", p->conn_class->server_log_recall);
@@ -1313,11 +1314,15 @@ static int _ircclient_motd(struct ircproxy *p) {
             s = x_strdup(c->log.nlines ? "all" : "none");
           } else if (p->conn_class->chan_log_recall == 0) {
             s = x_strdup("none");
-          } else if (p->conn_class->chan_log_recall == c->log.nlines) {
+          } else if ((unsigned long)p->conn_class->chan_log_recall == c->log.nlines) {
             s = x_strdup("all");
           } else {
-            s = x_sprintf("%ld", MIN(c->log.nlines,
-                                     p->conn_class->chan_log_recall));
+            unsigned long recall = c->log.nlines;
+
+            if ((unsigned long)p->conn_class->chan_log_recall < recall)
+              recall = (unsigned long)p->conn_class->chan_log_recall;
+
+            s = x_sprintf("%lu", recall);
           }
 
           ircclient_send_numeric(p, 372, ":- %s. %ld line%s logged. "
@@ -1429,7 +1434,7 @@ static void _ircclient_timedout(struct ircproxy *p, void *data) {
 
   /* These are always called after the timeout if the client's still
      connected, check the event they were looking for has happened */
-  connect = (int)data;
+  connect = (int)(intptr_t)data;
   if (connect && (p->server_status & IRC_SERVER_CREATED)) {
     /* Connecting to server, and a socket has been created to do it */
     debug("Server has been chosen");
@@ -1995,7 +2000,7 @@ int _ircclient_handle_privmsg(struct ircproxy *p, struct ircmessage msg) {
       } else if (!strcmp(cmsg.cmd, "DCC")
                  && p->conn_class->dcc_proxy_outgoing) {
         struct sockaddr_in vis_addr;
-        int len;
+        socklen_t len;
 
         /* We need our local address to do anything DCC related */
         len = sizeof(struct sockaddr_in);

@@ -40,13 +40,33 @@
 #define VERSION "-debug"
 #endif /* HAVE_CONFIG_H */
 
+#ifndef PACKAGE
+# ifdef PACKAGE_TARNAME
+#  define PACKAGE PACKAGE_TARNAME
+# else
+#  define PACKAGE "dircproxy"
+# endif
+#endif
+
+#ifndef VERSION
+# ifdef PACKAGE_VERSION
+#  define VERSION PACKAGE_VERSION
+# else
+#  define VERSION "-debug"
+# endif
+#endif
+
 #ifdef HAVE_CRYPT_H
 #include <crypt.h>
 #else /* HAVE_CRYPT_H */
 #include <unistd.h>
 #endif /* HAVE_CRYPT_H */
 
+#if defined(__APPLE__) || defined(__GLIBC__) || defined(__FreeBSD__) || defined(__NetBSD__) || defined(__OpenBSD__)
+#include <getopt.h>
+#else
 #include "getopt/getopt.h"
+#endif
 
 /* forward declarations */
 static void _encrypt(const char *);

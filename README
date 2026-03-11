@@ -2,7 +2,8 @@ dircproxy: Detachable IRC Proxy Server
 -------------------------------------
 
 ----------------------------------------------
-WARNING : 1.2.0-RC1 is currently unstable
+NOTE : 1.2.0 has been stabilized for modern
+       toolchains since the old 1.2.0-RC1
 ----------------------------------------------
 
 dircproxy is an IRC proxy server ("bouncer") designed for people
@@ -87,6 +88,28 @@ Installation
 ============
 
 See the file INSTALL for building and installation instructions.
+
+Recent Stabilization
+====================
+
+Recent maintenance work focused on getting the old 1.2.0-RC1 tree
+building and running correctly on modern Unix-like systems and current
+C compilers.
+
+Highlights of the stabilization work include:
+
+ o Build-system updates so autotools prefers the platform getopt()
+   implementation when getopt_long() is already available.
+ o Fixes for modern socket API typing, especially socklen_t handling.
+ o Safer handling of callback data passed through pointer-sized values.
+ o Fixes in the custom sprintf() code for varargs type promotion and
+   width parsing.
+ o Verified builds for both dircproxy and dircproxy-crypt using the
+   standard autotools flow:
+
+     autoreconf -fi
+     ./configure
+     make
 
 
 Running dircproxy

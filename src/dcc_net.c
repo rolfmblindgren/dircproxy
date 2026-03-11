@@ -205,7 +205,7 @@ static int _dccnet_connect(struct dccproxy *p, struct in_addr addr, int port,
 /* Bind a dcc socket to one from the allowed range */
 static int _dccnet_bind(int sock, int *range, size_t range_sz, int *port) {
   struct sockaddr_in local_addr;
-  int len;
+  socklen_t len;
 
   local_addr.sin_family = AF_INET;
   local_addr.sin_addr.s_addr = INADDR_ANY;
@@ -303,7 +303,7 @@ static void _dccnet_timedout(struct dccproxy *p, void *data) {
 /* Accept a sendee connection */
 static void _dccnet_accept(struct dccproxy *p, int sock) {
   int newsock;
-  int len;
+  socklen_t len;
 
   /* Accept the connection */
   len = sizeof(struct sockaddr_in);

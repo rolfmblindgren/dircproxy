@@ -792,7 +792,7 @@ int irclog_autorecall(struct ircproxy *p, const char *to) {
     return 0;
   
   /* Recall everything */
-  if (recall == -1) {
+  if (recall < 0) {
     start = 0;
   } else {
     start = (recall > log->nlines ? 0 : log->nlines - recall);
@@ -819,7 +819,7 @@ int irclog_recall(struct ircproxy *p, const char *to,
 
   /* Recall recent */
   if (start == -1)
-    start = (lines > log->nlines ? 0 : log->nlines - lines);
+    start = ((unsigned long)lines > log->nlines ? 0 : log->nlines - lines);
 
   return _irclog_recall(p, log, start, lines, to, from);
 }

@@ -27,5 +27,7 @@ dircproxy_SOURCES = \
 	sprintf.c sprintf.h \
 	memdebug.c memdebug.h
 
+if BUILD_BUNDLED_GETOPT
 dircproxy_LDADD = \
 	../getopt/libgetopt.a
+endif
