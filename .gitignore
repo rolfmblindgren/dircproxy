@@ -1,1 +1,38 @@
+# macOS / editor noise
+.DS_Store
 *~
+\#*\#
+.#*
+
+# Autotools / configure output
+Makefile
+config.h
+config.log
+config.status
+config.cache
+stamp-h1
+autom4te.cache/
+
+# Generated dependency files
+.deps/
+*.Po
+*.Plo
+
+# C build output
+*.o
+*.lo
+*.la
+*.a
+*.so
+*.dylib
+*.dll
+*.exe
+*.out
+*.gcda
+*.gcno
+*.gcov
+*.dSYM/
+
+# Project binaries
+src/dircproxy
+crypt/dircproxy-crypt
