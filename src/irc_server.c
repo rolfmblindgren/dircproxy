@@ -732,6 +732,7 @@ static int _ircserver_gotmsg(struct ircproxy *p, const char *str) {
         _ircserver_autoop_names(p, c, msg.params[3]);
       }
     }
+    squelch = 0;
   } else if (!irc_strcasecmp(msg.cmd, "375")) {
     /* Ignore 375 unless allow_motd */
     if (p->allow_motd)
