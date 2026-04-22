@@ -37,7 +37,6 @@
 #include <config.h>
 #else /* HAVE_CONFIG_H */
 #define PACKAGE "dircproxy"
-#define VERSION "-debug"
 #endif /* HAVE_CONFIG_H */
 
 #ifndef PACKAGE
@@ -48,13 +47,8 @@
 # endif
 #endif
 
-#ifndef VERSION
-# ifdef PACKAGE_VERSION
-#  define VERSION PACKAGE_VERSION
-# else
-#  define VERSION "-debug"
-# endif
-#endif
+#undef VERSION
+#define VERSION "1.2.0-rolfmblindgren"
 
 #ifdef HAVE_CRYPT_H
 #include <crypt.h>

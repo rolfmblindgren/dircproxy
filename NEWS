@@ -2,6 +2,8 @@ NEWS about changes for existing users.
 --------------------------------------
 
 Unreleased
+	* Fork version string now identifies this tree as
+	  1.2.0-rolfmblindgren instead of the upstream 1.2.0 release.
 	* Added optional channel auto-op support for channels listed in
 	  auto_op_channels, so dircproxy can op users on channels like #blaa
 	  whenever it already has operator privileges there.

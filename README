@@ -1,8 +1,9 @@
 dircproxy: Detachable IRC Proxy Server
 -------------------------------------
 
-----------------------------------------------
-NOTE : 1.2.0 has been stabilized for modern
+-----------------------------------------------
+NOTE : 1.2.0-rolfmblindgren is the forked build
+       that has been stabilized for modern
        toolchains since the old 1.2.0-RC1
 ----------------------------------------------
 
