@@ -74,6 +74,84 @@ static void _ircserver_dccresume_timeout(struct ircproxy *, struct dcc_resume *)
 struct dcc_resume *dcc_resume_list=NULL;
 
 
+/* Channel auto-op helpers */
+static int _ircserver_autoop_enabled(struct ircproxy *p, const char *channel) {
+  char *copy, *orig, *ptr;
+
+  if (!p->conn_class || !p->conn_class->auto_op_channels)
+    return 0;
+
+  orig = copy = x_strdup(p->conn_class->auto_op_channels);
+  while (copy && strlen(copy)) {
+    char *token, *end;
+
+    ptr = strchr(copy, ',');
+    if (ptr)
+      *(ptr++) = 0;
+
+    token = copy + strspn(copy, " \t\r\n");
+    end = token + strlen(token);
+    while ((end > token) && strchr(" \t\r\n", *(end - 1)))
+      *(--end) = 0;
+
+    if (strlen(token) && !irc_strcasecmp(token, channel)) {
+      free(orig);
+      return 1;
+    }
+
+    copy = ptr;
+  }
+
+  free(orig);
+  return 0;
+}
+
+static void _ircserver_autoop_names(struct ircproxy *p, struct ircchannel *c,
+                                    const char *names) {
+  char *copy, *orig, *ptr;
+  int self_seen = 0;
+  int self_is_op = 0;
+
+  if (!c || !p->nickname || !names || !strlen(names)
+      || !_ircserver_autoop_enabled(p, c->name))
+    return;
+
+  orig = copy = x_strdup(names);
+  while (copy && strlen(copy)) {
+    char *token, *nick;
+    int has_op_prefix = 0;
+
+    ptr = strchr(copy, ' ');
+    if (ptr)
+      *(ptr++) = 0;
+
+    token = copy + strspn(copy, " \t\r\n");
+    nick = token;
+    while (*nick && strchr("~&@%+", *nick)) {
+      if ((*nick == '~') || (*nick == '&') || (*nick == '@'))
+        has_op_prefix = 1;
+      nick++;
+    }
+
+    if (strlen(nick)) {
+      if (!irc_strcasecmp(nick, p->nickname)) {
+        self_seen = 1;
+        self_is_op = has_op_prefix;
+      } else if (c->op && !has_op_prefix) {
+        ircserver_send_command(p, "MODE", "%s +o %s", c->name, nick);
+      }
+    }
+
+    copy = ptr;
+  }
+
+  if (self_seen)
+    c->op = self_is_op;
+
+  free(orig);
+}
+
+
 /* Time/date format for strftime(3) */
 #define CTCP_TIMEDATE_FORMAT "%a, %d %b %Y %H:%M:%S %z"
 
@@ -645,6 +723,15 @@ static int _ircserver_gotmsg(struct ircproxy *p, const char *str) {
 	ircserver_connectagain(p);
       }
     }
+  } else if (!irc_strcasecmp(msg.cmd, "353")) {
+    if (msg.numparams >= 4) {
+      struct ircchannel *c;
+
+      c = ircnet_fetchchannel(p, msg.params[2]);
+      if (c) {
+        _ircserver_autoop_names(p, c, msg.params[3]);
+      }
+    }
   } else if (!irc_strcasecmp(msg.cmd, "375")) {
     /* Ignore 375 unless allow_motd */
     if (p->allow_motd)
@@ -713,6 +800,7 @@ static int _ircserver_gotmsg(struct ircproxy *p, const char *str) {
         chan = ircnet_fetchchannel(p, msg.params[1]);
         if (chan) {
           chan->inactive = 1;
+          chan->op = 0;
           ircnet_rejoin(p, chan->name);
         }
       } else {
@@ -730,9 +818,9 @@ static int _ircserver_gotmsg(struct ircproxy *p, const char *str) {
       struct ircchannel *c;
 
       /* Can't join a channel, permanent error */
-      c = ircnet_fetchchannel(p, msg.params[1]);
-      if (c) {
-        /* No client connected?  Better notify it */
+        c = ircnet_fetchchannel(p, msg.params[1]);
+        if (c) {
+          /* No client connected?  Better notify it */
         if (p->client_status != IRC_CLIENT_ACTIVE) {
           if (msg.numparams >= 3) {
             irclog_log(p, IRC_LOG_ERROR, IRC_LOGFILE_SERVER, PACKAGE,
@@ -746,6 +834,7 @@ static int _ircserver_gotmsg(struct ircproxy *p, const char *str) {
 
           /* Set it to an unjoined channel until the client comes back */
           c->unjoined = 1;
+          c->op = 0;
         } else {
           /* Client connected, so we really can't join it - delete it */
           ircnet_delchannel(p, msg.params[1]);
@@ -940,7 +1029,11 @@ static int _ircserver_gotmsg(struct ircproxy *p, const char *str) {
         }
       } else if ((c = ircnet_fetchchannel(p, msg.params[0]))) {
         /* Channel mode change */
+        int old_op = c->op;
+
         ircnet_channel_mode(p, c, &msg, 1);
+        if (!old_op && c->op && _ircserver_autoop_enabled(p, c->name))
+          ircserver_send_command(p, "NAMES", ":%s", c->name);
 
         irclog_log(p, IRC_LOG_MODE, c->name, p->servername,
                    "%s changed mode: %s", msg.src.fullname, msg.paramstarts[1]);
@@ -1002,6 +1095,11 @@ static int _ircserver_gotmsg(struct ircproxy *p, const char *str) {
           squelch = 0;
         }
 
+        if (c ? _ircserver_autoop_enabled(p, c->name)
+             : _ircserver_autoop_enabled(p, msg.params[0])) {
+          ircserver_send_command(p, "NAMES", ":%s", msg.params[0]);
+        }
+
         if ((p->client_status != IRC_CLIENT_ACTIVE)
             && (p->conn_class->detach_message)) {
           int slashme;
@@ -1029,8 +1127,15 @@ static int _ircserver_gotmsg(struct ircproxy *p, const char *str) {
       }
     } else {
       if (msg.numparams >= 1) {
+        struct ircchannel *c;
+
         irclog_log(p, IRC_LOG_JOIN, msg.params[0], p->servername,
                    "%s joined the channel", msg.src.fullname);
+
+        c = ircnet_fetchchannel(p, msg.params[0]);
+        if (c && _ircserver_autoop_enabled(p, c->name)) {
+          ircserver_send_command(p, "NAMES", ":%s", c->name);
+        }
       }
       squelch = 0;
     }

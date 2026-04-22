@@ -242,6 +242,7 @@ static int _ircclient_detach(struct ircproxy *p, const char *message) {
             ircserver_send_command(p, "PART", ":%s", t->name);
             if (p->conn_class->channel_rejoin_on_attach) {
               t->unjoined = 1;
+              t->op = 0;
             } else {
               ircnet_delchannel(p, t->name);
             }

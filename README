@@ -110,6 +110,8 @@ Highlights of the stabilization work include:
      autoreconf -fi
      ./configure
      make
+ o Added optional channel auto-op support for channels listed in
+   `auto_op_channels`, which can be used for channels such as `#blaa`.
 
 
 Running dircproxy

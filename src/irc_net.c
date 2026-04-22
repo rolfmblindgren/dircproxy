@@ -328,6 +328,13 @@ int ircnet_channel_mode(struct ircproxy *p, struct ircchannel *c,
       case 'e':
       case 'I':
       case 'l':
+        if ((*ptr == 'O') || (*ptr == 'o')) {
+          if (msg->numparams >= (param + 1)
+              && p->nickname
+              && !irc_strcasecmp(msg->params[param], p->nickname)) {
+            c->op = add;
+          }
+        }
         param++;
         break;
       /* Channel key */  
@@ -503,6 +510,7 @@ void ircnet_freeconnclass(struct ircconnclass *class) {
   free(class->drop_modes);
   free(class->refuse_modes);
   free(class->local_address);
+  free(class->auto_op_channels);
   free(class->away_message);
   free(class->quit_message);
   free(class->attach_message);

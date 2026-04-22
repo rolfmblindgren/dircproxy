@@ -101,6 +101,7 @@ int cfg_read(const char *filename, char **listen_port, char **pid_file,
                          ? x_strdup(DEFAULT_DETACH_MESSAGE) : 0);
   def->detach_nickname = (DEFAULT_DETACH_NICKNAME
                           ? x_strdup(DEFAULT_DETACH_NICKNAME) : 0);
+  def->auto_op_channels = 0;
   def->nick_keep = DEFAULT_NICK_KEEP;
   def->nickserv_password = NULL;
   def->ctcp_replies = DEFAULT_CTCP_REPLIES;
@@ -1094,6 +1095,8 @@ int cfg_read(const char *filename, char **listen_port, char **pid_file,
                                  ? x_strdup(def->detach_message) : 0);
         class->detach_nickname = (def->detach_nickname
                                   ? x_strdup(def->detach_nickname) : 0);
+        class->auto_op_channels = (def->auto_op_channels
+                                   ? x_strdup(def->auto_op_channels) : 0);
         class->log_dir = (def->log_dir ? x_strdup(def->log_dir) : 0);
         class->log_program = (def->log_program 
                               ? x_strdup(def->log_program) : 0);
@@ -1229,6 +1232,23 @@ int cfg_read(const char *filename, char **listen_port, char **pid_file,
         }
         free(orig);
 
+      } else if (class && !strcasecmp(key, "auto_op_channels")) {
+        /* auto_op_channels "#foo"
+           auto_op_channels "#foo,#bar"
+           auto_op_channels none */
+        char *str;
+
+        if (_cfg_read_string(&buf, &str))
+          UNMATCHED_QUOTE;
+
+        if (!strcasecmp(str, "none") || !strlen(str)) {
+          free(str);
+          str = 0;
+        }
+
+        free((class ? class : def)->auto_op_channels);
+        (class ? class : def)->auto_op_channels = str;
+
       } else if (class && !strcmp(key, "}")) {
         /* No auto-connect?  Then we *need* jump */
         if (!class->server_autoconnect)
@@ -1301,6 +1321,7 @@ int cfg_read(const char *filename, char **listen_port, char **pid_file,
   free(def->attach_message);
   free(def->detach_message);
   free(def->detach_nickname);
+  free(def->auto_op_channels);
   free(def->log_dir);
   free(def->log_program);
   free(def->dcc_proxy_ports);

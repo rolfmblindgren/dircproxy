@@ -139,6 +139,7 @@ typedef struct ircconnclass {
   struct strlist *servers, *next_server;
   struct strlist *masklist;
   struct strlist *channels;
+  char *auto_op_channels;
 
   /* Most config file options can be changed by editing the config file and
      HUP'ing dircproxy.  One or two can be done from the /DIRCPROXY command
@@ -162,6 +163,7 @@ typedef struct ircchannel {
   char *key;
   int inactive;
   int unjoined;
+  int op;
   struct logfile log;
 
   struct ircchannel *next;

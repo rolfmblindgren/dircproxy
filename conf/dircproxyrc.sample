@@ -189,6 +189,18 @@
 #
 #channel_rejoin_on_attach yes
 
+# auto_op_channels
+#     Which channels should dircproxy auto-op users on, as long as you
+#     already have op on that channel yourself?
+#
+#     This takes a comma-separated list of channel names.
+#
+#     auto_op_channels "#blaa"
+#
+#     Set to "none" or leave it blank to disable it.
+#
+#auto_op_channels "#blaa"
+
 
 # IDLE OPTIONS
 #     Options affecting idle times on IRC.
