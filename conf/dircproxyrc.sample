@@ -195,11 +195,11 @@
 #
 #     This takes a comma-separated list of channel names.
 #
-#     auto_op_channels "#blaa"
+#     auto_op_channels "#foo"
 #
 #     Set to "none" or leave it blank to disable it.
 #
-#auto_op_channels "#blaa"
+#auto_op_channels "#foo"
 
 
 # IDLE OPTIONS
